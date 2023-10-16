@@ -1,10 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const product_routes = require("./routes/productRoutes");
+const morgan = require("morgan");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
-const product_routes = require("./routes/productRoutes");
 
+app.use(express.json());
+app.use(morgan("default"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   cors({
@@ -13,7 +17,7 @@ app.use(
   })
 );
 
-app.use("/api/products", product_routes);
+app.use("/api/v1", product_routes);
 
 app.get("/", (req, res) => {
   res.send("Hi");

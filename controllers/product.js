@@ -1,9 +1,9 @@
-const getAllProduct = async (req, res) => {
+exports.getAllProduct = async (req, res) => {
   res.status(200).json({ message: "I am get all product" });
 };
 
-const getAllProducttesting = async (req, res) => {
+exports.getAllProducttesting = async (req, res) => {
   res.status(200).json({ message: "I am get all getAllProducttesting" });
 };
 
-module.exports = { getAllProduct, getAllProducttesting };
+// module.exports = { getAllProduct, getAllProducttesting };
