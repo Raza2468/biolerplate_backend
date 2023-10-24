@@ -4,7 +4,7 @@ const db = process.env.NODE_ENV === "production" ? process.env.DB_REMOTE : proce
 
 const dbConnect = async () => {
   try {
-    await mongoose.connect(db, {
+       await mongoose.connect(db.toString(), {
       useUnifiedTopology: true,
       useFindAndModify: false,
       useNewUrlParser: true,

@@ -1,4 +1,5 @@
 const version = "v1";
 module.exports = {
-  CUSTOMER: `/${version}/product`,
+  ADMIN: `/${version}/auth/admins`,
+  USER: `/${version}/auth/users`,
 };
