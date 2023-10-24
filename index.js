@@ -2,26 +2,17 @@ const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const cors = require("cors");
-// const session = require("cookie-session");
-const socketIo = require("socket.io");
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-const multer = require("multer");
 dotenv.config();
 require("./config/dbConnect")();
-const fs = require("fs");
-const jwt = require("jsonwebtoken");
-const path = require("path");
-// const authRoutes = require("./auth");
-const http = require("http");
 
-// =========================>
+
 
 let app = express();
 
-app.use(cookieParser());
+
 app.use(express.json());
-app.use(morgan("default"));
+app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   cors({
@@ -32,20 +23,77 @@ app.use(
 
 const userRoute = require("./constants/routes").USER;
 const userRouter = require("./routes/userRoutes");
+
 //==============================================
-const storage = multer.diskStorage({
-  // https://www.npmjs.com/package/multer#diskstorage
-  destination: "./uploads/",
-  filename: function (req, file, cb) {
-    cb(
-      null,
-      `${new Date().getTime()}-${file.filename}.${file.mimetype.split("/")[1]}`
-    );
-  },
-});
-//==============================================
-const upload = multer({ storage: storage });
+
+
 app.use(userRoute, userRouter);
+  
+
+app.listen(process.env.PORT, () => {
+  console.log("===================**===================");
+  console.log(`listening on http://localhost:${process.env.PORT}`);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const cookieParser = require("cookie-parser");
+// const multer = require("multer");
+// const socketIo = require("socket.io");
+// const fs = require("fs");
+// const jwt = require("jsonwebtoken");
+// const path = require("path");
+// const http = require("http");
+
+// app.use(cookieParser());
+// const storage = multer.diskStorage({
+//   // https://www.npmjs.com/package/multer#diskstorage
+//   destination: "./uploads/",
+//   filename: function (req, file, cb) {
+//     cb(
+//       null,
+//       `${new Date().getTime()}-${file.filename}.${file.mimetype.split("/")[1]}`
+//     );
+//   },
+// });
+//==============================================
+// const upload = multer({ storage: storage });
+
+
 // =========================>
 // app.use("/", express.static(path.resolve(path.join(__dirname, "Web/build"))));
 // =========================>
@@ -198,9 +246,5 @@ app.use(userRoute, userRouter);
 //         });
 // })
 
-app.listen(process.env.PORT, () => {
-  console.log("===================**===================");
-  console.log(`listening on http://localhost:${process.env.PORT}`);
-});
 
 // ==========================================>Server /////

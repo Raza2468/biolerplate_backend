@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const validator = require("validator");
+const ERRORS = require('../constants/errors')
 
 const userSchema = new mongoose.Schema(
   {
@@ -8,69 +9,66 @@ const userSchema = new mongoose.Schema(
       type: String,
       // minlength: 3,
       // maxlength: 15,
-    //   required: [true, ERRORS.REQUIRED.FIRSTNAME_REQUIRED],
+      // required: [true, ERRORS.REQUIRED.FIRSTNAME_REQUIRED],
     },
     lastName: {
       type: String,
       // minlength: 3,
       // maxlength: 15,
-    //   required: [true, ERRORS.REQUIRED.LASTNAME_REQUIRED],
-    //   validate: [validator.isAlpha, ERRORS.INVALID.INVALID_LASTNAME],
+      // required: [true, ERRORS.REQUIRED.LASTNAME_REQUIRED],
+      // validate: [validator.isAlpha, ERRORS.INVALID.INVALID_LASTNAME],
     },
-    country: [String],
-
+    id: {
+      type: Number
+    },
     email: {
       type: String,
       lowercase: true,
       unique: true,
       required: [true, `Email is required`],
-      validate: [validator.isEmail, `Please Enter Valid Email`],
+      // validate: [validator.isEmail, ERRORS.INVALID.INVALID_EMAIL],
     },
     address: {
       type: String,
     },
-    phone: {
-      type: String,
-      unique: true,
-    //   required: [true, ERRORS.REQUIRED.PHONE_REQUIRED],
-    },
-    otp: {
-      type: String,
-    },
     password: {
       type: String,
-    //   minlength: [8, ERRORS.INVALID.PASSWORD_LENGTH],
-      select: false,
+      minlength: [8, ERRORS.INVALID.PASSWORD_LENGTH]
+      // select: false,
     },
     image: {
       type: String,
     },
     role: {
       type: String,
-      enum: {
-        values: [
-          "serviceProvider",
-          "productSeller",
-          "customer",
-          "superAdmin",
-          "staff",
-          "cityManager",
-        ],
-        message:
-          "Role Must be admin, superAdmin, customer, serviceProvider, cityManager or productSeller",
-      },
-      default: "customer",
+      enum: [
+        "superAdmin",
+        "manager",
+        "vender",
+        "venderManager",
+        "cleaner",
+      ],
+
+      default: "superAdmin"
     },
-    refrence: {
-      type: String,
-    },
+    createdOn: { type: Date, default: Date.now },
   }
+);
+const User = mongoose.model("users", userSchema);
+module.exports = User;
+
+
+// assign: {
+//   type: String,
+// },
+// craeteBy: {
+//   type: String,
+// },
 //   {
 //     timestamps: true,
 //     toJSON: { virtuals: true },
 //     toObject: { virtuals: true },
 //   }
-);
 
 // userSchema.virtual("provider", {
 //   ref: "provider",
@@ -159,5 +157,3 @@ const userSchema = new mongoose.Schema(
 //   return token;
 // };
 
-const User = mongoose.model("user", userSchema);
-module.exports = User;
