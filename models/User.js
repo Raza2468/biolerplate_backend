@@ -2,24 +2,30 @@ const mongoose = require("mongoose");
 const crypto = require("crypto");
 const validator = require("validator");
 const ERRORS = require('../constants/errors')
+const { Schema } = mongoose;
+
 
 const userSchema = new mongoose.Schema(
   {
+    id: {
+      type: Number,
+      required: true,
+      unique: true
+    },
     firstName: {
       type: String,
-      // minlength: 3,
-      // maxlength: 15,
       // required: [true, ERRORS.REQUIRED.FIRSTNAME_REQUIRED],
     },
     lastName: {
       type: String,
-      // minlength: 3,
-      // maxlength: 15,
-      // required: [true, ERRORS.REQUIRED.LASTNAME_REQUIRED],
       // validate: [validator.isAlpha, ERRORS.INVALID.INVALID_LASTNAME],
     },
-    id: {
-      type: Number
+    gender: {
+      type: String
+    },
+    Phone: {
+      type: Number,
+      required: [true, `Phone is required`],
     },
     email: {
       type: String,
@@ -28,30 +34,39 @@ const userSchema = new mongoose.Schema(
       required: [true, `Email is required`],
       // validate: [validator.isEmail, ERRORS.INVALID.INVALID_EMAIL],
     },
-    address: {
-      type: String,
-    },
     password: {
       type: String,
       minlength: [8, ERRORS.INVALID.PASSWORD_LENGTH]
       // select: false,
     },
+    address: {
+      type: String,
+    },
     image: {
       type: String,
+    },
+    createBy: {
+      type: String,
+      required: [true, `createBy is required`],
     },
     role: {
       type: String,
       enum: [
-        "superAdmin",
+        // "superAdmin",
         "manager",
         "vender",
         "venderManager",
         "cleaner",
       ],
+      required: [true, `Role is required`],
 
-      default: "superAdmin"
-    },
-    createdOn: { type: Date, default: Date.now },
+      // default: "superAdmin"
+    }
+  },
+  {
+    timestamps: true,
+    // toJSON: { virtuals: true },
+    // toObject: { virtuals: true },
   }
 );
 const User = mongoose.model("users", userSchema);

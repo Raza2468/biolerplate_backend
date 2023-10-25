@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt-inzi");
 const jwt = require('jsonwebtoken');
 const User = require("../models/User");
+const { v4: uuidv4 } = require('uuid');
 
+const uniqueId = uuidv4();
 const {
   ERRORS,
   STATUS_CODE,
@@ -12,101 +14,95 @@ const {
 
 exports.createUser = async (req, res, next) => {
   try {
+    const { email, password, firstname, createBy, role, Phone } = req.body;
 
-    if (!req.body.email || !req.body.password) {
-      res.status(STATUS_CODE.FORBIDDEN).send(!req.body.email ? ERRORS.REQUIRED.EMAIL_REQUIRED : ERRORS.REQUIRED.PASSWORD_REQUIRED)
-
-    } else {
-
-      User.findOne({ email: req.body.email }, function (err, Doc) {
-
-        if (!err && !Doc) {
-          bcrypt.stringToHash(req.body.password).then(async (hash) => {
-            let newUser = new User({
-              firstname: req.body.firstname,
-              email: req.body.email,
-              password: hash,
-            });
-            const registered = await newUser.save();
-            User.findOneAndUpdate({ _id: registered._id }, { $set: { id: registered.id + 1 } }, function (err, doc) {
-              if (err) {
-                console.log("Something wrong when updating data!");
-              }
-              console.log(doc);
-            })
-            console.log(req.body)
-            res.status(STATUS_CODE.CREATED).send(registered);
-          });
-        } else if (err) {
-          res.status(STATUS_CODE.SERVER_ERROR).send({
-            message: "db error",
-          });
-        } else {
-          res.status(409).send({
-            message: "user alredy access",
-          });
-        }
-      })
+    // Validate email and password
+    if (!email || !password) {
+      return res.status(STATUS_CODE.BAD_REQUEST).send({
+        error: !email ? ERRORS.REQUIRED.EMAIL_REQUIRED : ERRORS.REQUIRED.PASSWORD_REQUIRED
+      });
     }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(STATUS_CODE.CONFLICT).send({
+        message: "User already exists",
+        errors: { email: "Email already in use" }
+      });
+    }
+
+    const hash = await bcrypt.stringToHash(password);
+    const newUser = new User({
+      firstname,
+      email,
+      createBy,
+      role,
+      Phone,
+      password: hash,
+      id: Date.now()
+    });
+
+    const registered = await newUser.save();
+    return res.status(STATUS_CODE.CREATED).send(registered);
+
   } catch (error) {
-    res.status(STATUS_CODE.SERVER_ERROR).json({
-      status: STATUS.ERROR,
-      message: error.message,
+    return res.status(STATUS_CODE.SERVER_ERROR).send({
+      message: "Internal Server Error",
+      error: error.message
     });
   }
 };
 
-
 exports.userLogin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
 
-  if (!req.body.email || !req.body.password) {
-    res.status(403).send(!req.body.email ? ERRORS.REQUIRED.EMAIL_REQUIRED : ERRORS.REQUIRED.PASSWORD_REQUIRED)
+    if (!email || !password) {
+      return res.status(403).send({
+        message: !email ? ERRORS.REQUIRED.EMAIL_REQUIRED : ERRORS.REQUIRED.PASSWORD_REQUIRED
+      });
+    }
 
-  } else {
+    const user = await User.findOne({ email });
 
-    User.findOne({ email: req.body.email },
-      function (err, user) {
-        if (user) {
+    if (!user) {
+      return res.status(403).send({
+        message: "Incorrect email or password"
+      });
+    }
 
-          bcrypt.varifyHash(req.body.password, user.password).then(result => {
-            if (result) {
-              var token = jwt.sign({
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-              }, process.env.SERVERSECRETKEY);
+    const isPasswordValid = await bcrypt.varifyHash(password, user.password);
 
-              res.send({
-                message: "login success",
-                user: {
-                  name: user.name,
-                  email: user.email,
-                  phone: user.phone,
-                  // ip: req.connection.remoteAddress,
-                  role: user.role,
-                },
-                token: token
-              })
+    if (isPasswordValid) {
+      const token = jwt.sign({
+        _id: user._id,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      }, process.env.SERVERSECRETKEY);
 
-            } else {
-              res.status(401).send({
-                message: "incorrect password"
-              })
-            }
-          }).catch(e => {
-            res.send({
-              message: "incorrect email"
-            });
-          })
-        } else {
-          res.status(403).send({
-            message: "user not found",
-            error: err
-          });
-        }
-      })
+      return res.send({
+        message: "Login success",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+        },
+        token: token
+      });
+    } else {
+      return res.status(401).send({
+        message: "Incorrect email or password"
+      });
+    }
+  } catch (error) {
+    return res.status(500).send({
+      message: "Internal Server Error",
+      error: error.message
+    });
   }
-
-
-}
+};
